@@ -67,3 +67,8 @@ client.login(process.env.DISCORD_TOKEN).then(() => {
 }).catch(err => {
   console.error('Error logging into Discord:', err);
 });
+
+process.on('SIGINT', function() {
+    console.log("Caught interrupt signal, shutting down!");
+    process.exit();
+});
