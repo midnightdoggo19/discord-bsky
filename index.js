@@ -69,6 +69,6 @@ client.login(process.env.DISCORD_TOKEN).then(() => {
 });
 
 process.on('SIGINT', function() {
-    console.log("Caught interrupt signal, shutting down!");
+    console.log("\nCaught interrupt signal, shutting down!");
     process.exit();
 });
