@@ -1,7 +1,16 @@
 {
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node index.js"
+  },
   "dependencies": {
     "@atproto/api": "^0.13.19",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "validate-npm-package-name": "^6.0.0"
   }
 }
