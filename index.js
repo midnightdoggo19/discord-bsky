@@ -2,8 +2,13 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 const { BskyAgent } = require('@atproto/api');
 
+const commands = require('./commands.json');
+console.log(commands)
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
+let streaming = true;
 
 const bskyAgent = new BskyAgent({
   service: process.env.PDS || "https://bsky.social", // default to the default if there is not a pds provided
@@ -17,23 +22,21 @@ bskyAgent.login({
   console.error('Error logging into Bluesky:', err);
 });
 
-// slash command
-const commands = [
-  {
-    name: 'post', // command name
-    description: 'Post a message to Bluesky',
-    options: [
-      {
-        name: 'message',
-        type: 3, // STRING
-        description: 'The message to post', // for the field
-        required: true,
-      },
-    ],
-  },
-];
+async function clearCommands() {
+  try {
+      console.log('Clearing commands...');
+      const globalCommands = await rest.get(Routes.applicationCommands(process.env.CLIENT_ID));
+      for (const command of globalCommands) {
+          await rest.delete(Routes.applicationCommand(process.env.CLIENT_ID, command.id));
+      }
+      console.log('Commands cleared');
+  } catch (error) {
+      console.error('Error deleting commands:', error);
+  }
+}
 
 (async () => {
+  await clearCommands()
   try {
     console.log('Registering slash commands...'); // global
     await rest.put(
@@ -45,6 +48,12 @@ const commands = [
     console.error('Error registering slash commands:', err);
   }
 })();
+
+client.on('messageCreate', () => {
+  //if (message.author.bot || message.channel.id != process.env.STREAMCHANNEL || streaming === false) return;
+
+  console.log('it worked');
+})
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return; // only commands
@@ -59,6 +68,11 @@ client.on('interactionCreate', async interaction => {
       console.error('Error posting to Bluesky:', err);
       await interaction.reply('Failed to post to Bluesky.');
     }
+  }
+
+  if (interaction.commandName === 'stream') {
+    if (interaction.options.getString('true'))
+      await interaction.reply('ok')
   }
 });
 

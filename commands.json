@@ -1,0 +1,26 @@
+[
+    {
+      "name": "post",
+      "description": "Post a message to Bluesky",
+      "options": [
+        {
+          "name": "message",
+          "type": 3,
+          "description": "The message to post",
+          "required": true
+        }
+      ]
+    },
+    {
+        "name": "stream",
+        "description": "Stream messages to Bluesky",
+        "options": [
+          {
+            "name": "stream",
+            "type": 5,
+            "description": "Stream?",
+            "required": true
+          }
+        ]
+      }
+]
