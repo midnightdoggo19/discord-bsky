@@ -25,6 +25,8 @@ bskyAgent.login({
   console.error('Error logging into Bluesky:', err);
 });
 
+var streaming = false
+
 async function clearCommands() {
   try {
       console.log('Clearing commands...');
@@ -63,7 +65,7 @@ client.on('messageCreate', async (message) => {
     console.error('Error posting to Bluesky:', err);
     message.reply('Failed to post to Bluesky.');
   }
-})
+});
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return; // only commands
@@ -81,13 +83,13 @@ client.on('interactionCreate', async interaction => {
   }
 
   if (interaction.commandName === 'stream') {
-    const streaming = interaction.options.getBoolean('stream')
-    console.log(`Message streaming set to ${streaming} by ${interaction.user.username}`)
+    streaming = interaction.options.getBoolean('stream');
+    console.log(`Message streaming set to ${streaming} by ${interaction.user.username}`);
       if (streaming == false) { // after changing it
-        await interaction.reply('Message streaming disabled.')
+        await interaction.reply('Message streaming disabled.');
       }
       else {
-        await interaction.reply('Message streaming enabled.')
+        await interaction.reply('Message streaming enabled.');
       }
   }
 });
