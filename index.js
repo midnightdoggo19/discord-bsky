@@ -1,14 +1,17 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 const { BskyAgent } = require('@atproto/api');
-
 const commands = require('./commands.json');
-console.log(commands)
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+  intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+  ]
+});
+
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-
-let streaming = true;
 
 const bskyAgent = new BskyAgent({
   service: process.env.PDS || "https://bsky.social", // default to the default if there is not a pds provided
@@ -36,7 +39,7 @@ async function clearCommands() {
 }
 
 (async () => {
-  await clearCommands()
+  // await clearCommands()
   try {
     console.log('Registering slash commands...'); // global
     await rest.put(
@@ -49,10 +52,17 @@ async function clearCommands() {
   }
 })();
 
-client.on('messageCreate', () => {
-  //if (message.author.bot || message.channel.id != process.env.STREAMCHANNEL || streaming === false) return;
+client.on('messageCreate', async (message) => {
+  try {if (message.author.bot || message.channel.id != process.env.STREAMCHANNEL || streaming == false) return} catch (ReferenceError) {return};
 
-  console.log('it worked');
+  try {
+    await bskyAgent.post({ text: message.content });
+    console.log(`${message.author.username} posted to Bluesky: ${message.content}`) // username posted
+    message.reply(`Posted to Bluesky: "${message.content}"`);
+  } catch (err) {
+    console.error('Error posting to Bluesky:', err);
+    message.reply('Failed to post to Bluesky.');
+  }
 })
 
 client.on('interactionCreate', async interaction => {
@@ -62,17 +72,23 @@ client.on('interactionCreate', async interaction => {
     const message = interaction.options.getString('message');
     try {
       await bskyAgent.post({ text: message });
-      await interaction.reply(`Posted to Bluesky: "${message}"`);
       console.log(`${interaction.user.username} posted to Bluesky: ${message}`) // username posted
+      interaction.reply(`Posted to Bluesky: "${message}"`);
     } catch (err) {
       console.error('Error posting to Bluesky:', err);
-      await interaction.reply('Failed to post to Bluesky.');
+      interaction.reply('Failed to post to Bluesky.');
     }
   }
 
   if (interaction.commandName === 'stream') {
-    if (interaction.options.getString('true'))
-      await interaction.reply('ok')
+    const streaming = interaction.options.getBoolean('stream')
+    console.log(`Message streaming set to ${streaming} by ${interaction.user.username}`)
+      if (streaming == false) { // after changing it
+        await interaction.reply('Message streaming disabled.')
+      }
+      else {
+        await interaction.reply('Message streaming enabled.')
+      }
   }
 });
 
