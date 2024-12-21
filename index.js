@@ -25,6 +25,7 @@ bskyAgent.login({
   console.error('Error logging into Bluesky:', err);
 });
 
+// Default to off
 var streaming = false
 
 async function clearCommands() {
