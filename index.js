@@ -57,6 +57,7 @@ async function clearCommands() {
 
 client.on('messageCreate', async (message) => {
   try {if (message.author.bot || message.channel.id != process.env.STREAMCHANNEL || streaming == false) return} catch (ReferenceError) {return};
+  if (!process.env.IDs.includes(interaction.user.id)) { logger.warn(`Unauthorized user ${interaction.user.username} attempted to use a command.`); return; }
 
   try {
     await bskyAgent.post({ text: message.content });
