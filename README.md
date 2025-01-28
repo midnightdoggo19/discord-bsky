@@ -12,12 +12,7 @@ Install dependencies:
 ```
 npm i
 ```
-Fill your Discord application's information in `example.env` and rename it to `.env`:
-```
-nano example.env
-mv example.env .env
-```
-Run the bot:
+Fill your Discord application's information in `.example.env` and rename it to `.env`. The bot is now ready to run:
 ```
 node index.js
 ```
