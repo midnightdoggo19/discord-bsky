@@ -12,7 +12,10 @@ Install dependencies:
 ```
 npm i
 ```
-Fill your Discord application's information in `.example.env` and rename it to `.env`. The bot is now ready to run:
+Fill your Discord bot's & Bluesky account's information in `.example.env` and rename it to `.env`. The bot is now ready to run:
 ```
-node index.js
+npm start
 ```
+# Required Intents:
+* Server Members
+* Message Content
