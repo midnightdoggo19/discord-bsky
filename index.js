@@ -13,7 +13,6 @@ const {
 const winston = require('winston');
 require('dotenv').config();
 const { BskyAgent } = require('@atproto/api');
-const commands = require('./commands.json');
 
 const client = new Client({
   intents: [
