@@ -13,8 +13,16 @@ const {
 const winston = require('winston');
 require('dotenv').config();
 const { BskyAgent } = require('@atproto/api');
+const commands = require('./commands.json');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+  intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+  ]
+});
+
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
 const bskyAgent = new BskyAgent({
@@ -50,6 +58,7 @@ const commands = [
 ];
 
 (async () => {
+  // await clearCommands()
   try {
     console.log('Registering slash commands...'); // global
     await rest.put(
@@ -96,8 +105,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // send to bluesky
     try {
       await bskyAgent.post({ text: message });
-      await interaction.reply(`Posted to Bluesky: "${message}"`);
       console.log(`${interaction.user.username} posted to Bluesky: ${message}`) // username posted
+      interaction.reply(`Posted to Bluesky: "${message}"`);
     } catch (err) {
       console.error('Error posting to Bluesky:', err);
       await interaction.reply('Failed to post to Bluesky.');
