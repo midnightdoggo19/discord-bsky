@@ -2,17 +2,14 @@ const {
   Client, 
   GatewayIntentBits, 
   REST, 
-  Routes, 
-  ModalBuilder, 
-  TextInputBuilder, 
-  TextInputStyle, 
-  ActionRowBuilder, 
-  Events 
+  Collection,
 } = require('discord.js');
 
-const winston = require('winston');
-require('dotenv').config();
+const fs = require('node:fs');
+const path = require('node:path');
+require('dotenv').config()
 const { BskyAgent } = require('@atproto/api');
+const { logger } = require('./functions.js')
 
 const client = new Client({
   intents: [
@@ -23,21 +20,14 @@ const client = new Client({
 });
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+client.commands = new Collection();
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
 const bskyAgent = new BskyAgent({
   service: process.env.PDS || "https://bsky.social", // default to the default if there is not a pds provided
-});
-
-const logger = winston.createLogger({
-  level: process.env.LOGLEVEL || 'info',
-  format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(info => `[${info.timestamp}] ${info.level.toUpperCase()}: ${info.message}`)
-  ),
-  transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: process.env.LOGFILE || 'logger.log' }),
-  ]
 });
 
 bskyAgent.login({
@@ -45,75 +35,32 @@ bskyAgent.login({
   identifier: process.env.BLUESKY_HANDLE,
   password: process.env.BLUESKY_PASSWORD,
 }).catch(err => {
-  console.error('Error logging into Bluesky:', err);
+  logger.error('Error logging into Bluesky:', err);
 });
 
-// slash command
-const commands = [
-  {
-    name: 'post', // command name
-    description: 'Post a message to Bluesky',
-  },
-];
+for (const folder of commandFolders) {
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			logger.warn(` The command at ${filePath} is missing a required "data" or "execute" property.`);
+		};
+	};
+};
 
-(async () => {
-  // await clearCommands()
-  try {
-    console.log('Registering slash commands...'); // global
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands }
-    );
-    console.log('Slash commands registered!');
-  } catch (err) {
-    console.error('Error registering slash commands:', err);
-  }
-})();
-
-client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isCommand() && !interaction.isModalSubmit()) return;
-  if (!process.env.IDs.includes(interaction.user.id)) { logger.warn(`Unauthorized user ${interaction.user.username} attempted to use a command.`); return; } // limit to defined users
-
-  if (interaction.isCommand() && interaction.commandName === 'post') {
-      logger.debug(`${interaction.username} ran the \`post\` command`)      
-
-        const modal = new ModalBuilder()
-            .setCustomId('messageModal')
-            .setTitle('Message to post to Bluesky');
-
-        // message
-        const messageInput = new TextInputBuilder()
-            .setCustomId('messageInput')
-            .setLabel('Enter the Message:')
-            .setStyle(TextInputStyle.Paragraph)
-            .setRequired(true);
-
-        // add input to actionrows
-        const messageRow = new ActionRowBuilder().addComponents(messageInput);
-
-        // add rows to the modal
-        modal.addComponents(messageRow);
-
-        await interaction.showModal(modal);
-  }
-
-  // modal submission
-  if (interaction.isModalSubmit() && interaction.customId === 'messageModal') {
-    const message = interaction.fields.getTextInputValue('messageInput');
-
-    // send to bluesky
-    try {
-      await bskyAgent.post({ text: message });
-      console.log(`${interaction.user.username} posted to Bluesky: ${message}`) // username posted
-      interaction.reply(`Posted to Bluesky: "${message}"`);
-    } catch (err) {
-      console.error('Error posting to Bluesky:', err);
-      await interaction.reply('Failed to post to Bluesky.');
-    }
-
-    logger.info(`${interaction.username} posted: "${message}".`)
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
 }
-});
 
 if (!process.env.DISCORD_TOKEN || !process.env.CLIENT_ID) {
   logger.error('Missing TOKEN or CLIENT_ID in the environment variables.');
@@ -127,6 +74,9 @@ client.login(process.env.DISCORD_TOKEN).then(() => {
 });
 
 process.on('SIGINT', function() {
-    logger.info("Caught interrupt signal, shutting down!");
+    logger.info(`\nCaught interrupt signal, shutting down!`);
     process.exit();
 });
+
+client.login(process.env.DISCORD_TOKEN);
+module.exports = { bskyAgent }
