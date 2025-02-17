@@ -8,7 +8,6 @@ const {
 const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config()
-const { BskyAgent } = require('@atproto/api');
 const { logger } = require('./functions.js')
 
 const client = new Client({
@@ -25,18 +24,6 @@ const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-
-const bskyAgent = new BskyAgent({
-  service: process.env.PDS || "https://bsky.social", // default to the default if there is not a pds provided
-});
-
-bskyAgent.login({
-  // set in .env
-  identifier: process.env.BLUESKY_HANDLE,
-  password: process.env.BLUESKY_PASSWORD,
-}).catch(err => {
-  logger.error('Error logging into Bluesky:', err);
-});
 
 for (const folder of commandFolders) {
 	const commandsPath = path.join(foldersPath, folder);
@@ -79,4 +66,3 @@ process.on('SIGINT', function() {
 });
 
 client.login(process.env.DISCORD_TOKEN);
-module.exports = { bskyAgent }

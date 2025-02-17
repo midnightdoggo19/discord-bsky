@@ -1,15 +1,22 @@
-const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, ActionRowBuilder } = require('discord.js');
+const {
+    SlashCommandBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    ActionRowBuilder,
+    TextInputStyle
+} = require('discord.js');
+
 const { logger } = require('../../functions.js');
-const { bskyAgent } = require('../../index.js');
+const { bskyAgent } = require('../../functions.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('post')
-		.setDescription('Post to bsky'),
+		.setDescription('Post to Bluesky'),
     
 	async execute(interaction) {
-        interaction.deferReply();
-		logger.debug(`${interaction.username} ran the \`post\` command`)      
+        // interaction.deferReply();
+		logger.debug(`${interaction.user.username} ran the \'post\' command`)      
 
 		const modal = new ModalBuilder()
 			.setCustomId('messageModal')

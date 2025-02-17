@@ -1,5 +1,6 @@
 const winston = require('winston');
 require('dotenv').config();
+const { BskyAgent } = require('@atproto/api');
 
 const logger = winston.createLogger({
     level: process.env.LOGLEVEL || 'info',
@@ -13,4 +14,16 @@ const logger = winston.createLogger({
     ]
 });
 
-module.exports = { logger }
+const bskyAgent = new BskyAgent({
+    service: process.env.PDS || "https://bsky.social", // default to the default if there is not a pds provided
+});
+
+bskyAgent.login({
+    // set in .env
+    identifier: process.env.BLUESKY_HANDLE,
+    password: process.env.BLUESKY_PASSWORD,
+}).catch(err => {
+    logger.error('Error logging into Bluesky:', err);
+});
+
+module.exports = { logger, bskyAgent }
