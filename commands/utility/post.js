@@ -24,8 +24,9 @@ module.exports = {
 
 		// message
 		const messageInput = new TextInputBuilder()
+            .setMinLength(10)
 			.setCustomId('messageInput')
-			.setLabel('Enter the Message:')
+			.setLabel('Enter the post contents:')
 			.setStyle(TextInputStyle.Paragraph)
 			.setRequired(true);
 

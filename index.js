@@ -49,7 +49,7 @@ for (const file of eventFiles) {
 	}
 }
 
-if (!process.env.DISCORD_TOKEN || !process.env.CLIENT_ID) {
+if (!process.env.DISCORD_TOKEN || !process.env.ID) {
   logger.error('Missing TOKEN or CLIENT_ID in the environment variables.');
   process.exit(1);
 }
