@@ -6,8 +6,8 @@
     "register": "node register.js"
   },
   "dependencies": {
-    "@atproto/api": "^0.13.19",
-    "discord.js": "^14.18.0",
+    "@atproto/api": "^0.14.1",
+    "discord.js": "^14.16.3",
     "dotenv": "^16.4.7",
     "winston": "^3.17.0"
   },
