@@ -2,7 +2,7 @@
 
 Clone the repo:
 ```
-git clone https://github.com/midnightdoggo19/discord-bsky
+git clone https://github.com/midnightdoggo19/discord-bsky.git
 ```
 Enter the new directory:
 ```
